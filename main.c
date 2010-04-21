@@ -1,5 +1,4 @@
 #include <GL/glut.h>
-#include <gsl/gsl_errno.h>
 #include <gsl/gsl_odeiv.h>
 #include <stdio.h>
 #include <math.h>
@@ -11,6 +10,14 @@
 #define R1 0.594
 #define R2 0.055
 #define SCALE 1
+#define YAW_I (M_PI/4.0)
+#define LEAN_I 0.1
+#define SPIN_I 0.0
+#define X_I 0.0
+#define Y_I 0.0
+#define U1_I 0.1
+#define U2_I 2.0
+#define U3_I 0.1
 
 double COx[FRAME_RATE*TIME + 1];
 double COy[FRAME_RATE*TIME + 1];
@@ -26,7 +33,13 @@ int k = 0;                     // global for index
 void init(void)
 {
   glClearColor(0.0, 0.0, 0.0, 0.0);
-  glShadeModel(GL_FLAT);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT1);
+  glDisable(GL_NORMALIZE);
+  //glShadeModel(GL_SMOOTH);
 }
 
 void display(void)
@@ -36,9 +49,27 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(CNx[1], CNy[1], -3.5,   // camera position
-           CNx[1], CNy[1], 0.0,   // point camera at this position
-           2.0, 0.0, -10.0);  // define up of the camera
+  gluLookAt(CNx[1], CNy[1], -5.0,   // camera position
+            CNx[1], CNy[1], 0.0,   // point camera at this position
+             1.0, 0.0, 0.0);  // define up of the camera
+
+  //Add ambient light
+  GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color (0.2, 0.2, 0.2)
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+
+  //Add positioned light
+  GLfloat lightColor0[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.5, 0.5)
+  GLfloat lightPos0[] = {4.0f, 0.0f, 8.0f, 1.0f}; //Positioned at (4, 0, 8)
+  glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
+  glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
+
+  //Add directed light
+  GLfloat lightColor1[] = {0.5f, 0.2f, 0.2f, 1.0f}; //Color (0.5, 0.2, 0.2)
+  //Coming from the direction (-1, 0.5, 0.5)
+  GLfloat lightPos1[] = {-1.0f, 0.5f, 0.5f, 0.0f};
+  glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
+  glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
+
 
   // x axis
   glColor3f(1.0, 0.0, 0.0);
@@ -81,13 +112,13 @@ void display(void)
   glPopMatrix();
 
   glPushMatrix();
-    glColor3f(0.5, 0.5, .5);
+    glColor3f(0.9, 0.2, .7);
     glTranslatef(COx[k], COy[k], COz[k]);
     glRotatef(90.0, 1.0, 0.0, 0.0);
     glRotatef(yaw[k], 0.0, 1.0, 0.0);
     glRotatef(lean[k], 1.0, 0.0, 0.0);
     glRotatef(spin[k], 0.0, 0.0, -1.0);
-    glutWireTorus(R2, R1, 20, 20);
+    glutSolidTorus(R2, R1, 20, 20);
   glPopMatrix();
 
   glutSwapBuffers();  // Only needed if in double buffer mode
@@ -121,7 +152,7 @@ void updateState(int value)
 
 int main(int argc, char** argv)
 {
-  double state[8] = {0.0, 0.1, 0.0, 1.0, 1.0, 0.0, 0.0, 3.0};
+  double state[8] = {YAW_I, LEAN_I, SPIN_I, X_I, Y_I, U1_I, U2_I, U3_I};
   int j;
   const gsl_odeiv_step_type * T = gsl_odeiv_step_rkf45;
   double params[3] = {G, R1, R2};
@@ -163,11 +194,10 @@ int main(int argc, char** argv)
   gsl_odeiv_control_free(c);
   gsl_odeiv_step_free(s);
 
-
+  // Initialize animation window
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
-  glutInitWindowSize(500, 500);
-  glutInitWindowPosition(900, 100);
+  glutInitWindowSize(600, 600);
   glutCreateWindow("Rolling Torus Animation");
   init();
 
