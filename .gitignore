@@ -2,3 +2,4 @@ main.o
 torus.o
 rollingtorus
 vec3d.o
+*.swp
