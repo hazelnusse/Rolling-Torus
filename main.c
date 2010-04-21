@@ -9,10 +9,19 @@
 #define TIME 2
 #define G 9.81
 #define R1 0.594
-#define R2 0.025
-#define SCALE 1
+#define R2 0.055
+#define SCALE 5
 
-double x[8][FRAME_RATE*TIME];  // global for state
+double x[8][FRAME_RATE*TIME + 1];  // global for state
+double COx[FRAME_RATE*TIME + 1];
+double COy[FRAME_RATE*TIME + 1];
+double COz[FRAME_RATE*TIME + 1];
+double CNx[FRAME_RATE*TIME + 1];
+double CNy[FRAME_RATE*TIME + 1];
+double yaw[FRAME_RATE*TIME + 1];
+double lean[FRAME_RATE*TIME + 1];
+double spin[FRAME_RATE*TIME + 1];
+
 int k = 0;                     // global for index
 
 void init(void)
@@ -28,9 +37,9 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(x[3][k]-5.0, x[4][k], 0.0,   // camera position
-            x[3][k], x[4][k], 0.0,   // point camera at this position
-            0.0, 0.0, -1.0);  // define up of the camera
+  gluLookAt(CNx[0]-10, CNy[0], -3.5,   // camera position
+           CNx[0], CNy[0], 0.0,   // point camera at this position
+           0.0, 0.0, -1.0);  // define up of the camera
 
   // x axis
   glColor3f(1.0, 0.0, 0.0);
@@ -74,13 +83,11 @@ void display(void)
 
   glPushMatrix();
     glColor3f(0.5, 0.5, .5);
-    glTranslatef(-R1*sin(x[0][k])*sin(x[1][k]) + x[3][k],
-                  R1*cos(x[0][k])*sin(x[1][k]) + x[4][k],
-                  -R2 - R1*cos(x[1][k]));
-    glRotatef(90.0, 1.0, 0.0, 0.0);  // puts the torus upright
-    glRotatef(x[0][k]*180./M_PI, 0.0, 0.0, 1.0);
-    glRotatef(x[1][k]*180./M_PI, 1.0, 0.0, 0.0);
-    glRotatef(x[2][k]*180./M_PI, 0.0, 1.0, 0.0);
+    glTranslatef(COx[k], COy[k], COz[k]);
+    glRotatef(90.0, 1.0, 0.0, 0.0);
+    glRotatef(yaw[k], 0.0, 1.0, 0.0);
+    glRotatef(lean[k], 1.0, 0.0, 0.0);
+    glRotatef(spin[k], 0.0, 0.0, -1.0);
     glutWireTorus(R2, R1, 20, 20);
   glPopMatrix();
 
@@ -115,9 +122,9 @@ void updateState(int value)
 
 int main(int argc, char** argv)
 {
-  double state[8] = {M_PI/4., 0.0, 0.0, 1.0, 1.0, -1.75, 9.0, 0.0};
+  double state[8] = {0.0, 0.1, 0.0, 1.0, 1.0, 0.0, 0.0, 3.0};
   int i, j;
-  const gsl_odeiv_step_type * T = gsl_odeiv_step_rk8pd;
+  const gsl_odeiv_step_type * T = gsl_odeiv_step_rkf45;
   double params[3] = {G, R1, R2};
   double t = 0.0, tj;
   double h = 1e-3;
@@ -125,23 +132,37 @@ int main(int argc, char** argv)
   for (i = 0; i < 8; ++i)
     x[i][0] = state[i];
 
-  printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f\n",
-              t,  state[0],   state[1],   state[2],   state[3],   state[4],   state[5],   state[6],   state[7]);
+  printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | "
+         "%5.5f\n", t,  state[0],   state[1],   state[2],   state[3],
+          state[4],   state[5],   state[6],   state[7]);
+
+  // Set up the integration
   gsl_odeiv_step * s = gsl_odeiv_step_alloc (T, 8);
   gsl_odeiv_control * c = gsl_odeiv_control_y_new (1e-6, 0.0);
   gsl_odeiv_evolve * e = gsl_odeiv_evolve_alloc(8);
   gsl_odeiv_system sys = {TorusEOMS, NULL, 8, params};
 
-  for (j = 1; j <= FRAME_RATE*TIME; ++j) {
+  // Do the integration
+  for (j = 1; j < FRAME_RATE*TIME + 1; ++j) {
     tj = j / (double) FRAME_RATE;
     while (t < tj)
       gsl_odeiv_evolve_apply (e, c, s, &sys, &t, tj, &h, state);
-    for (i = 0; i < 8; ++i)
-      x[i][j] = state[i];
 
-  printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f\n",
-              t,  state[0],   state[1],   state[2],   state[3],   state[4],   state[5],   state[6],   state[7]);
-  } // for
+    yaw[j] = (180./M_PI*state[0] > 360) ? 180./M_PI*state[0] - 360. : 180./M_PI*state[0];
+    lean[j] = (180./M_PI*state[1] > 360) ? 180./M_PI*state[1] - 360. : 180./M_PI*state[1];
+    spin[j] = (180./M_PI*state[2] > 360) ? 180./M_PI*state[2] - 360. : 180./M_PI*state[2];
+    COx[j] = -R1*sin(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[3];
+    COy[j] =  R1*cos(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[4];
+    COz[j] = -R2 - R1*cos(M_PI/180.*state[1]);
+    CNx[j] = state[3];
+    CNy[j] = state[4];
+
+    printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | "
+           "%5.5f\n", t,  state[0],   state[1],   state[2],   state[3],
+            state[4],   state[5],   state[6],   state[7]);
+  } // for j
+
+  // Free allocated GSL variables
   gsl_odeiv_evolve_free(e);
   gsl_odeiv_control_free(c);
   gsl_odeiv_step_free(s);
@@ -150,7 +171,7 @@ int main(int argc, char** argv)
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
   glutInitWindowSize(500, 500);
-  glutInitWindowPosition(100, 100);
+  glutInitWindowPosition(900, 100);
   glutCreateWindow("Rolling Torus Animation");
   init();
 
