@@ -6,13 +6,12 @@
 #include "torus.h"
 
 #define FRAME_RATE 60
-#define TIME 2
+#define TIME 20 
 #define G 9.81
 #define R1 0.594
 #define R2 0.055
-#define SCALE 5
+#define SCALE 1
 
-double x[8][FRAME_RATE*TIME + 1];  // global for state
 double COx[FRAME_RATE*TIME + 1];
 double COy[FRAME_RATE*TIME + 1];
 double COz[FRAME_RATE*TIME + 1];
@@ -37,9 +36,9 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(CNx[0]-10, CNy[0], -3.5,   // camera position
-           CNx[0], CNy[0], 0.0,   // point camera at this position
-           0.0, 0.0, -1.0);  // define up of the camera
+  gluLookAt(CNx[1], CNy[1], -3.5,   // camera position
+           CNx[1], CNy[1], 0.0,   // point camera at this position
+           2.0, 0.0, -10.0);  // define up of the camera
 
   // x axis
   glColor3f(1.0, 0.0, 0.0);
@@ -123,14 +122,11 @@ void updateState(int value)
 int main(int argc, char** argv)
 {
   double state[8] = {0.0, 0.1, 0.0, 1.0, 1.0, 0.0, 0.0, 3.0};
-  int i, j;
+  int j;
   const gsl_odeiv_step_type * T = gsl_odeiv_step_rkf45;
   double params[3] = {G, R1, R2};
   double t = 0.0, tj;
   double h = 1e-3;
-
-  for (i = 0; i < 8; ++i)
-    x[i][0] = state[i];
 
   printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | "
          "%5.5f\n", t,  state[0],   state[1],   state[2],   state[3],
