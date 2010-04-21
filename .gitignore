@@ -1,4 +1,4 @@
 main.o
 torus.o
 rollingtorus
-vech3d.o
+vec3d.o
