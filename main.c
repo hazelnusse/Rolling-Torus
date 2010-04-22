@@ -5,7 +5,7 @@
 #include "torus.h"
 
 #define FRAME_RATE 60
-#define TIME 20 
+#define TIME 40 
 #define G 9.81
 #define R1 0.594
 #define R2 0.055
