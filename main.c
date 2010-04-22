@@ -39,34 +39,34 @@ void init(void)
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHT1);
   glDisable(GL_NORMALIZE);
-  //glShadeModel(GL_SMOOTH);
+  glShadeModel(GL_SMOOTH);
 }
 
 void display(void)
 {
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
 
   glLoadIdentity();
 
-  gluLookAt(CNx[1], CNy[1], -5.0,   // camera position
+  gluLookAt(CNx[1], CNy[1], -6.0,   // camera position
             CNx[1], CNy[1], 0.0,   // point camera at this position
              1.0, 0.0, 0.0);  // define up of the camera
 
   //Add ambient light
-  GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color (0.2, 0.2, 0.2)
+  GLfloat ambientColor[] = {0.4f, 0.4f, 0.4f, 1.0f}; //Color (0.2, 0.2, 0.2)
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 
   //Add positioned light
-  GLfloat lightColor0[] = {0.5f, 0.5f, 0.5f, 1.0f}; //Color (0.5, 0.5, 0.5)
-  GLfloat lightPos0[] = {4.0f, 0.0f, 8.0f, 1.0f}; //Positioned at (4, 0, 8)
+  GLfloat lightColor0[] = {0.7f, 0.7f, 0.7f, 1.0f}; //Color (0.5, 0.5, 0.5)
+  GLfloat lightPos0[] = {0.0f, 0.0f, -2.0f, 1.0f}; //Positioned at (4, 0, 8)
   glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor0);
   glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 
   //Add directed light
   GLfloat lightColor1[] = {0.5f, 0.2f, 0.2f, 1.0f}; //Color (0.5, 0.2, 0.2)
   //Coming from the direction (-1, 0.5, 0.5)
-  GLfloat lightPos1[] = {-1.0f, 0.5f, 0.5f, 0.0f};
+  GLfloat lightPos1[] = {-1.0f, 0.0f, 0.0f, 0.0f};
   glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
   glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
 
@@ -118,7 +118,7 @@ void display(void)
     glRotatef(yaw[k], 0.0, 1.0, 0.0);
     glRotatef(lean[k], 1.0, 0.0, 0.0);
     glRotatef(spin[k], 0.0, 0.0, -1.0);
-    glutSolidTorus(R2, R1, 20, 20);
+    glutSolidTorus(R2, R1, 30, 30);
   glPopMatrix();
 
   glutSwapBuffers();  // Only needed if in double buffer mode
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
 
   // Initialize animation window
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
   glutInitWindowSize(600, 600);
   glutCreateWindow("Rolling Torus Animation");
   init();
