@@ -1,0 +1,39 @@
+Rolling Torus Animation
+=====
+
+An OpenGL and GSL based animation of an uniform density torus rolling without
+slip on a flat plane.
+
+License: New BSD License (see the LICENSE file for details)
+covers all files in the sympy repository unless stated otherwise.
+
+0. Download
+-----------
+
+The source code is hosted on github.com :
+
+$ git clone git://github.com/hazelnusse/Rolling-Torus.git
+
+
+1. Required libraries
+--------------------------
+
+To build the source, you must be able to link to the following libaries:
+
+libgsl -- GNU Scientific Library
+cblas  -- C Basic Linear Algebra Subsystem
+atlas  -- Automatically Tuned Linear Algebra Software
+GL     -- Open GL library
+GLU    -- Open GL utility library
+glut   -- Open GL utility toolkit
+
+Under Ubuntu/Debian, these can be installed via:
+aptitude install libatlas-base-dev libatlas-headers libatlas3gf-base \
+         libgsl0-dev libgsl0ldbl freeglut3 freeglut3-dbg freeglut3-dev
+
+2. Clean
+--------
+
+To clean everything (thus getting the same tree as in the repository):
+
+$ ./make clean
