@@ -16,8 +16,8 @@
 #define X_I 0.0
 #define Y_I 0.0
 #define U1_I 0.1
-#define U2_I 2.0
-#define U3_I 0.1
+#define U2_I 1.5
+#define U3_I -0.1
 
 double COx[FRAME_RATE*TIME + 1];
 double COy[FRAME_RATE*TIME + 1];
@@ -49,7 +49,7 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(CNx[1], CNy[1], -6.0,   // camera position
+  gluLookAt(CNx[1], CNy[1], -8.0,   // camera position
             CNx[1], CNy[1], 0.0,   // point camera at this position
              1.0, 0.0, 0.0);  // define up of the camera
 
