@@ -37,3 +37,16 @@ aptitude install libatlas-base-dev libatlas-headers libatlas3gf-base \
 To clean everything (thus getting the same tree as in the repository):
 
 $ ./make clean
+
+3. Python wrappers
+------------------
+
+To compile the Python wrappers, do:
+
+./setup.py build_ext --inplace
+
+and run:
+
+python run.py
+
+for a simple demo.
