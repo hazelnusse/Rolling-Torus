@@ -40,16 +40,19 @@ cdef extern from "arrayobject.h":
 cdef extern from "torus.h":
     int c_TorusEOMS "TorusEOMS"(double t, double x[8], double f[8], void *params)
 
-def TorusEOMS(t, x, f, params):
+def TorusEOMS(t, x, params):
     assert len(x) == 8
-    assert len(f) == 8
     assert len(params) == 3
+    from numpy import zeros
+    f = zeros(8, dtype="double")
     cdef double *c_x, *c_f, *c_params
     cdef int n
     numpy2c_double_inplace(x, &c_x, &n)
     numpy2c_double_inplace(f, &c_f, &n)
     numpy2c_double_inplace(params, &c_params, &n)
-    return c_TorusEOMS(t, c_x, c_f, c_params)
+    r = c_TorusEOMS(t, c_x, c_f, c_params)
+    assert r == 0
+    return f
 
 _AA = None
 
