@@ -56,7 +56,7 @@ def TorusEOMS(t, x, params):
 
 _AA = None
 
-cdef api void numpy2c_int_inplace(object A_n, int **A_c, int *n):
+cdef void numpy2c_int_inplace(object A_n, int **A_c, int *n):
     """
     Returns the C array, that points to the numpy array (inplace).
 
@@ -76,7 +76,7 @@ cdef api void numpy2c_int_inplace(object A_n, int **A_c, int *n):
     n[0] = len(A)
     A_c[0] = <int *>(A.data)
 
-cdef api void numpy2c_double_inplace(object A_n, double **A_c, int *n):
+cdef void numpy2c_double_inplace(object A_n, double **A_c, int *n):
     """
     Returns the C array, that points to the numpy array (inplace).
 
