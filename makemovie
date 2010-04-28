@@ -1,0 +1,18 @@
+#!/bin/bash
+# This script calls ffmpeg to combine a sequence of images into a movie.  The
+# options you must specify are the file names, the frame rate to encode at, and
+# the name of the output file.  ffmpeg will determine the appropriate codec
+# from the extension of the output file you specify.
+#
+# Usage:
+# Suppose you just generated a 10 PNG files, named foo001.png, foo002.png, ...
+# up to foo010.png.  To encode these PNG's to an Ogg Vorbis video with a frame
+# rate of 60fps, you would do:
+#
+# $ makemovie foo%03d.png 60 foo.ogv
+# 
+# jpg's should also work, as well as different output video formats such as
+# avi, mp4, mpg, etc.  See the ffmpeg documentation for more details on other
+# options.
+
+ffmpeg -f image2 -i $1 -r $2 $3

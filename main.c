@@ -5,11 +5,11 @@
 #include <png.h>
 #include "torus.h"
 
-#define FRAME_RATE 60
-#define TIME 1
-#define SCALE 2
-#define WIDTH 600
-#define HEIGHT 600
+#define FRAME_RATE 120
+#define TIME 10
+#define SCALE 3
+#define WIDTH 1280
+#define HEIGHT 720
 #define G 9.81
 #define R1 0.594
 #define R2 0.055
@@ -49,11 +49,11 @@ int SavePicture(){
     int i;
     png_bytep *row_pointers;
     unsigned char *buffer;
-    char filename[20];
+    char filename[50];
 	png_structp png_ptr;
 	png_infop info_ptr;
     FILE *fp;
-    sprintf(filename, "torus%04d" ".png", k);
+    sprintf(filename, "./pngs/torus%04d.png", k);
 	
 	// Open file for writing (binary mode)
 	fp = fopen(filename, "wb");
