@@ -1,5 +1,6 @@
-main.o
-torus.o
 rollingtorus
-vec3d.o
+*.o
 *.swp
+*.png
+_torus.c
+_torus.so

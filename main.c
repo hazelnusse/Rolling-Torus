@@ -2,14 +2,17 @@
 #include <gsl/gsl_odeiv.h>
 #include <stdio.h>
 #include <math.h>
+#include <png.h>
 #include "torus.h"
 
 #define FRAME_RATE 60
-#define TIME 40 
+#define TIME 1
+#define SCALE 2
+#define WIDTH 600
+#define HEIGHT 600
 #define G 9.81
 #define R1 0.594
 #define R2 0.055
-#define SCALE 1
 #define YAW_I (M_PI/4.0)
 #define LEAN_I 0.1
 #define SPIN_I 0.0
@@ -40,6 +43,81 @@ void init(void)
   glEnable(GL_LIGHT1);
   glDisable(GL_NORMALIZE);
   glShadeModel(GL_SMOOTH);
+}
+
+int SavePicture(){
+    int i;
+    png_bytep *row_pointers;
+    unsigned char *buffer;
+    char filename[20];
+	png_structp png_ptr;
+	png_infop info_ptr;
+    FILE *fp;
+    sprintf(filename, "torus%04d" ".png", k);
+	
+	// Open file for writing (binary mode)
+	fp = fopen(filename, "wb");
+    if (!fp) {
+        fprintf(stderr, "capture: Couln't open output file \"%s\"", filename);
+        return 1;
+    }
+
+    buffer = (unsigned char *) malloc(WIDTH * HEIGHT * 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0,0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
+    /*  Initialize PNG structs */
+    png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL); 
+    if (!png_ptr) {
+        fprintf(stderr, "capture: Can't initialize png_ptr");
+        return 1;
+    }
+    info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr) {
+         png_destroy_write_struct(&png_ptr, (png_infopp) NULL);
+         fprintf(stderr, "capture: Can't initialze info_ptr");
+         return 1;
+    }
+
+    /*  Initialize PNG error jump */
+    if (setjmp(png_jmpbuf(png_ptr))) {
+        png_destroy_write_struct(&png_ptr, &info_ptr);
+        fclose(fp);
+        fprintf(stderr, "capture: Unknown error");
+        return 1;
+    }
+
+    /*  Give PNG the file handle */
+    png_init_io(png_ptr, fp);
+
+    /*  Set PNG options/info.  Assumes 24 bit color buffer, change this
+     *  if you need to.
+     */
+    png_set_IHDR(png_ptr, info_ptr, 
+        WIDTH,                          /* Width */
+        HEIGHT,                         /* Height */
+        8,                              /* Bit depth */ 
+        PNG_COLOR_TYPE_RGB_ALPHA,       /* Color type */
+        PNG_INTERLACE_NONE,             /* Interlacing */
+        PNG_COMPRESSION_TYPE_DEFAULT,   /* Compression */
+        PNG_FILTER_TYPE_DEFAULT);       /* Filter method */
+    
+    /*  Set up row pointers.  OpenGL stores the buffer in reverse
+     *  row order to PNG (bottom-to-top instead of top-to-bottom),
+     *  so we flip them here.
+     */
+    row_pointers = png_malloc(png_ptr, HEIGHT * sizeof(png_bytep));
+    for (i = 0; i< HEIGHT; i++)
+        row_pointers[i] = &buffer[(HEIGHT - i - 1) * WIDTH* 4];
+    png_set_rows(png_ptr, info_ptr, row_pointers);
+    
+    /*  Write the PNG */
+    png_write_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, NULL);
+
+    /*  Free up */
+    png_destroy_write_struct(&png_ptr, &info_ptr);
+    fclose(fp);
+    return 0;
 }
 
 void display(void)
@@ -121,6 +199,8 @@ void display(void)
     glutSolidTorus(R2, R1, 30, 30);
   glPopMatrix();
 
+  glFinish();
+  SavePicture();  //save pixels before swapping buffer
   glutSwapBuffers();  // Only needed if in double buffer mode
 }
 
@@ -142,10 +222,10 @@ void keyboard (unsigned char key, int x, int y)
 
 void updateState(int value)
 {
+  glutPostRedisplay();
   ++k;
   if (k == FRAME_RATE*TIME)
-    k = 0;
-  glutPostRedisplay();
+    exit(0);
   // re-register the callback
   glutTimerFunc((unsigned int) (SCALE * 1000.0/ (double) FRAME_RATE), updateState, 0);  // update 60 times per second
 }
@@ -159,9 +239,17 @@ int main(int argc, char** argv)
   double t = 0.0, tj;
   double h = 1e-3;
 
-  printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | "
-         "%5.5f\n", t,  state[0],   state[1],   state[2],   state[3],
-          state[4],   state[5],   state[6],   state[7]);
+
+  for (j = 0; j < 8; ++j) {
+    yaw[0] = (180./M_PI*state[0] > 360) ? 180./M_PI*state[0] - 360. : 180./M_PI*state[0];
+    lean[0] = (180./M_PI*state[1] > 360) ? 180./M_PI*state[1] - 360. : 180./M_PI*state[1];
+    spin[0] = (180./M_PI*state[2] > 360) ? 180./M_PI*state[2] - 360. : 180./M_PI*state[2];
+    COx[0] = -R1*sin(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[3];
+    COy[0] =  R1*cos(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[4];
+    COz[0] = -R2 - R1*cos(M_PI/180.*state[1]);
+    CNx[0] = state[3];
+    CNy[0] = state[4];
+  }
 
   // Set up the integration
   gsl_odeiv_step * s = gsl_odeiv_step_alloc (T, 8);
@@ -184,9 +272,6 @@ int main(int argc, char** argv)
     CNx[j] = state[3];
     CNy[j] = state[4];
 
-    printf("%5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | %5.5f | "
-           "%5.5f\n", t,  state[0],   state[1],   state[2],   state[3],
-            state[4],   state[5],   state[6],   state[7]);
   } // for j
 
   // Free allocated GSL variables
@@ -196,8 +281,8 @@ int main(int argc, char** argv)
 
   // Initialize animation window
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-  glutInitWindowSize(600, 600);
+  glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+  glutInitWindowSize(WIDTH, HEIGHT);
   glutCreateWindow("Rolling Torus Animation");
   init();
 
