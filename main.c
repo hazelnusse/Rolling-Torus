@@ -7,7 +7,7 @@
 
 #define FRAME_RATE 120
 #define TIME 10
-#define SCALE 3
+#define SCALE 1
 #define WIDTH 1280
 #define HEIGHT 720
 #define G 9.81
@@ -122,13 +122,14 @@ int SavePicture(){
 
 void display(void)
 {
+  int i;
   glClear(GL_COLOR_BUFFER_BIT |GL_DEPTH_BUFFER_BIT);
   glMatrixMode(GL_MODELVIEW);
 
   glLoadIdentity();
 
-  gluLookAt(CNx[1], CNy[1], -8.0,   // camera position
-            CNx[1], CNy[1], 0.0,   // point camera at this position
+  gluLookAt(CNx[0], CNy[0], -8.0,   // camera position
+            CNx[0], CNy[0], 0.0,   // point camera at this position
              1.0, 0.0, 0.0);  // define up of the camera
 
   //Add ambient light
@@ -148,10 +149,19 @@ void display(void)
   glLightfv(GL_LIGHT1, GL_DIFFUSE, lightColor1);
   glLightfv(GL_LIGHT1, GL_POSITION, lightPos1);
 
+  // Draw path
+  glPushMatrix();
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_LINE_STRIP);
+    for (i = 0; i < k; ++i)
+      glVertex3f(CNx[i], CNy[i], 0.0);
+    glEnd();
+  glPopMatrix();
+      
 
   // x axis
-  glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_LINES);
+    glColor3f(1.0, 0.0, 0.0);
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(1.0, 0.0, 0.0);
   glEnd();
@@ -164,8 +174,7 @@ void display(void)
 
   // y axis
   glBegin(GL_LINES);
-  glColor3f(0.0, 1.0, 0.0);
-  glBegin(GL_LINES);
+    glColor3f(0.0, 1.0, 0.0);
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(0.0, 1.0, 0.0);
   glEnd();
@@ -178,8 +187,7 @@ void display(void)
 
   // z axis
   glBegin(GL_LINES);
-  glColor3f(0.0, 0.0, 1.0);
-  glBegin(GL_LINES);
+    glColor3f(0.0, 0.0, 1.0);
     glVertex3f(0.0, 0.0, 0.0);
     glVertex3f(0.0, 0.0, 1.0);
   glEnd();
@@ -189,15 +197,17 @@ void display(void)
     glutWireCone(0.05, 0.1, 10, 1);
   glPopMatrix();
 
+  // Draw Torus
   glPushMatrix();
     glColor3f(0.9, 0.2, .7);
     glTranslatef(COx[k], COy[k], COz[k]);
-    glRotatef(90.0, 1.0, 0.0, 0.0);
-    glRotatef(yaw[k], 0.0, 1.0, 0.0);
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    glRotatef(yaw[k], 0.0, -1.0, 0.0);
     glRotatef(lean[k], 1.0, 0.0, 0.0);
-    glRotatef(spin[k], 0.0, 0.0, -1.0);
+    glRotatef(spin[k], 0.0, 0.0, 1.0);
     glutSolidTorus(R2, R1, 30, 30);
   glPopMatrix();
+
 
   glFinish();
   SavePicture();  //save pixels before swapping buffer
@@ -244,9 +254,9 @@ int main(int argc, char** argv)
     yaw[0] = (180./M_PI*state[0] > 360) ? 180./M_PI*state[0] - 360. : 180./M_PI*state[0];
     lean[0] = (180./M_PI*state[1] > 360) ? 180./M_PI*state[1] - 360. : 180./M_PI*state[1];
     spin[0] = (180./M_PI*state[2] > 360) ? 180./M_PI*state[2] - 360. : 180./M_PI*state[2];
-    COx[0] = -R1*sin(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[3];
-    COy[0] =  R1*cos(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[4];
-    COz[0] = -R2 - R1*cos(M_PI/180.*state[1]);
+    COx[0] = -R1*sin(state[0])*sin(state[1]) + state[3];
+    COy[0] =  R1*cos(state[0])*sin(state[1]) + state[4];
+    COz[0] = -R2 - R1*cos(state[1]);
     CNx[0] = state[3];
     CNy[0] = state[4];
   }
@@ -266,9 +276,9 @@ int main(int argc, char** argv)
     yaw[j] = (180./M_PI*state[0] > 360) ? 180./M_PI*state[0] - 360. : 180./M_PI*state[0];
     lean[j] = (180./M_PI*state[1] > 360) ? 180./M_PI*state[1] - 360. : 180./M_PI*state[1];
     spin[j] = (180./M_PI*state[2] > 360) ? 180./M_PI*state[2] - 360. : 180./M_PI*state[2];
-    COx[j] = -R1*sin(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[3];
-    COy[j] =  R1*cos(M_PI/180.*state[0])*sin(M_PI/180.*state[1]) + state[4];
-    COz[j] = -R2 - R1*cos(M_PI/180.*state[1]);
+    COx[j] = -R1*sin(state[0])*sin(state[1]) + state[3];
+    COy[j] =  R1*cos(state[0])*sin(state[1]) + state[4];
+    COz[j] = -R2 - R1*cos(state[1]);
     CNx[j] = state[3];
     CNy[j] = state[4];
 
