@@ -6,8 +6,8 @@
 #include "torus.h"
 
 #define FRAME_RATE 120
-#define TIME 10
-#define SCALE 1
+#define TIME 10 
+#define SCALE 2
 #define WIDTH 1280
 #define HEIGHT 720
 #define G 9.81
@@ -62,10 +62,6 @@ int SavePicture(){
         return 1;
     }
 
-    buffer = (unsigned char *) malloc(WIDTH * HEIGHT * 4);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0,0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-
     /*  Initialize PNG structs */
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL); 
     if (!png_ptr) {
@@ -106,6 +102,10 @@ int SavePicture(){
      *  row order to PNG (bottom-to-top instead of top-to-bottom),
      *  so we flip them here.
      */
+    buffer = (unsigned char *) malloc(WIDTH * HEIGHT * 4);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(0,0, WIDTH, HEIGHT, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+
     row_pointers = png_malloc(png_ptr, HEIGHT * sizeof(png_bytep));
     for (i = 0; i< HEIGHT; i++)
         row_pointers[i] = &buffer[(HEIGHT - i - 1) * WIDTH* 4];
@@ -116,6 +116,7 @@ int SavePicture(){
 
     /*  Free up */
     png_destroy_write_struct(&png_ptr, &info_ptr);
+    free(buffer);
     fclose(fp);
     return 0;
 }
@@ -128,8 +129,8 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(CNx[0], CNy[0], -8.0,   // camera position
-            CNx[0], CNy[0], 0.0,   // point camera at this position
+  gluLookAt(0.0, 0.0, -8.0,   // camera position
+            0.0, 0.0, 0.0,   // point camera at this position
              1.0, 0.0, 0.0);  // define up of the camera
 
   //Add ambient light
