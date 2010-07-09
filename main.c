@@ -5,9 +5,9 @@
 #include <png.h>
 #include "torus.h"
 
-#define FRAME_RATE 120
-#define TIME 10 
-#define SCALE 2
+#define FRAME_RATE 60
+#define TIME 50 
+#define SCALE 1
 #define WIDTH 1280
 #define HEIGHT 720
 #define G 9.81
@@ -20,7 +20,7 @@
 #define Y_I 0.0
 #define U1_I 0.1
 #define U2_I 1.5
-#define U3_I -0.1
+#define U3_I -0.3
 
 double COx[FRAME_RATE*TIME + 1];
 double COy[FRAME_RATE*TIME + 1];
@@ -129,8 +129,8 @@ void display(void)
 
   glLoadIdentity();
 
-  gluLookAt(0.0, 0.0, -8.0,   // camera position
-            0.0, 0.0, 0.0,   // point camera at this position
+  gluLookAt(-1.0, 1.0, -6.0,   // camera position
+            -1.0, 1.0, 0.0,   // point camera at this position
              1.0, 0.0, 0.0);  // define up of the camera
 
   //Add ambient light
@@ -211,7 +211,7 @@ void display(void)
 
 
   glFinish();
-  SavePicture();  //save pixels before swapping buffer
+  //SavePicture();  //save pixels before swapping buffer
   glutSwapBuffers();  // Only needed if in double buffer mode
 }
 
@@ -220,7 +220,7 @@ void reshape (int w, int h)
   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity ();
-  gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1.0, 20.0);
+  gluPerspective(45.0, (GLfloat) w/(GLfloat) h, 1.0, 10.0);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
 }
